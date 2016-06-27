@@ -16,18 +16,20 @@ rho = 0.1
 def main():
     # initialize the variables
     x = np.array([0, 0])
-    r = 0.369
+    r = 0.5
     epsilon = 0.01
+    i = 0
     
-    while np.linalg.norm(nabla_f(x, r, rho)) >= epsilon:
+    while i < 30 and np.linalg.norm(nabla_f(x, r, rho)) >= epsilon:
         d = -nabla_f(x, r, rho)
-        print d
-        alpha = almijo(x, r, d)
-        x += alpha * np.array([d[0], d[1]])
-        r = d[2]
-        print [x, r]
-
-    print [x, r]
+        alpha = armijo(x, r, d)
+        # print alpha
+        x = x + alpha * np.array([d[0], d[1]])
+        r += alpha * d[2] #maron
+        i += 1
+        # print [x, r]
+        # print x + np.array([d[0], d[1]])
+        # print f(x, r, rho)
 
 
 # prepare the second section for objective function
@@ -40,31 +42,32 @@ def sigma(x, r):
 
 # objective function
 def f(x, r, rho):
-    return r * r + sigma(x, r) + max([0, -r])
+    return r * r + rho * sigma(x, r) + rho * max([0, -r])
 
 # direction
 def nabla_f(x, r, rho):
+    dx0 = 0
     dx1 = 0
-    dx2 = 0
     dr = 2 * r - rho if r < 0 else 2 * r
     for pos in position:
         if np.linalg.norm(x - pos)**2 - r * r > 0:
-            dx1 += 2 * (x[0] - pos[0])
-            dx2 += 2 * (x[1] - pos[1])
+            dx0 += 2 * (x[0] - pos[0])
+            dx1 += 2 * (x[1] - pos[1])
             dr -= 2 * r * rho
-    return np.array([dx1, dx2, dr])
+    return np.array([dx0, dx1, dr])
 
-# Almijo method
-def almijo(x, r, d):
+# Armijo method
+def armijo(x, r, d):
     alpha = 1.0
     beta = 0.9
+    tau = 0.0001
     dx = np.array([d[0], d[1]])
     dr = d[2]
-    while f(x + alpha * dx, r + dr, rho) > f(x, r, rho) + beta * alpha * np.dot(nabla_f(x, r, rho), d):
+    i = 0
+    while i < 500 and f(x + alpha * dx, r + alpha * dr, rho) > f(x, r, rho) + tau * alpha * np.dot(nabla_f(x, r, rho), d): #maron
         alpha *= beta
-        print d
-        print [x, r]
-        print [x + alpha * dx, r + dr]
+        i += 1
     return alpha
 
 main()
+
