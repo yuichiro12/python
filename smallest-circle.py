@@ -3,7 +3,7 @@
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
-
+import time
 
 # store input position data
 position = []
@@ -12,9 +12,6 @@ for row in input_file:
     pos = [float(s) for s in row[:-1].split(',')]
     position.append(np.array(pos))
 
-    
-# initialize the penalty
-rho = 1.0
 
 def main():
     # initialize the variables
@@ -22,13 +19,23 @@ def main():
     r = 0.3
     epsilon = 0.0001
     i = 0
-    
+
+    # initialize the penalty
+    rho = 0.7
+
+    # previous alpha (initial value)
+    prev_alpha = 1.0
+
+    start = time.time()
+    #main roop
     while i < 100 and np.linalg.norm(nabla_f(x, r, rho)) >= epsilon:
         d = -nabla_f(x, r, rho)
-        alpha = armijo(x, r, d)
+        alpha = armijo(x, r, d, rho, prev_alpha)
+        prev_alpha = alpha
         x = x + alpha * np.array([d[0], d[1]])
         r += alpha * d[2] #maron
         i += 1
+    print str(time.time() - start) + "[sec]"
     drawfigure(x[0], x[1], r)
 
 
@@ -62,7 +69,7 @@ def f(x, r, rho):
     return r * r + rho * sigma(x, r) + rho * max([0, -r])
 
 
-# direction
+# gradient vector
 def nabla_f(x, r, rho):
     dx0 = 0
     dx1 = 0
@@ -76,8 +83,8 @@ def nabla_f(x, r, rho):
 
 
 # Armijo method
-def armijo(x, r, d):
-    alpha = 1.0
+def armijo(x, r, d, rho, prev_alpha):
+    alpha = prev_alpha
     beta = 0.9
     tau = 0.0001
     dx = np.array([d[0], d[1]])
