@@ -21,9 +21,12 @@ for row in input_file:
 def main():
     #initialize the variables
     epsilon = 0.00001
-    r = 3.0
-    x = np.array([(random.random() - 0.5) * 10 for i in radiuses])
-    y = np.array([(random.random() - 0.5) * 10 for i in radiuses])
+    area = 0
+    for ri in radiuses:
+        area += ri * ri * math.pi
+    r = math.sqrt(area * 2 / math.pi)
+    x = np.array([(random.random() - 0.5) * r for i in radiuses])
+    y = np.array([(random.random() - 0.5) * r for i in radiuses])
 
     # initialize the penalty
     rho = 1.0
@@ -31,6 +34,7 @@ def main():
     # previous alpha (initial value)
     prev_alpha = 1.0
 
+    print r, f(x, y, r, rho)
     # main roop
     start = time.time()
     drawfigure(x, y, radiuses, r)
@@ -45,7 +49,7 @@ def main():
             x = x + alpha * d[0]
             y = y + alpha * d[1]
             r = r + alpha * d[2]
-            print x[15], y[15], r
+            print r, f(x, y, r, rho)
             i += 1
         else:
             break
@@ -124,7 +128,7 @@ def nabla_f(x, y, r, rho):
 def armijo(x, y, r, d, rho, prev_alpha):
     alpha = prev_alpha
     beta = 0.90
-    tau = 0.000000001
+    tau = 0.00001
     dx = d[0]
     dy = d[1]
     dr = d[2]
