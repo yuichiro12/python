@@ -10,7 +10,7 @@ import time
 
 # store input radius data
 radiuses = []
-input_file = open("radius.csv", "r")
+input_file = open("radius3.csv", "r")
 for row in input_file:
     rad = float(row[:-1])
     radiuses.append(rad)
@@ -36,18 +36,19 @@ def main():
     # main roop
     start = time.time()
     drawfigure(x, y, radiuses, r)
-    while i < 100:
+    while i < 1000:
         d = nabla_f(x, y, r, rho)
         d[0] *= -1
         d[1] *= -1
         d[2] *= -1
-        if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon:
+        if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon**2:
             alpha = armijo(x, y, r, d, rho, prev_alpha)
             prev_alpha = alpha
             x = x + alpha * d[0]
             y = y + alpha * d[1]
             r = r + alpha * d[2]
             i += 1
+            print r, f(x, y, r, rho), sigma1(x, y)
         else:
             break
     drawfigure(x, y, radiuses, r)
@@ -73,8 +74,10 @@ def sigma1(x, y):
     sum = 0
     for i, ri in enumerate(radiuses):
         for j, rj in enumerate(radiuses):
-            if j > i:
-                sum += max([0, (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2])
+            if j <= i:
+                continue
+            elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
+                sum += (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2
     return sum
 
 # the third section for objective function
@@ -90,14 +93,14 @@ def max3(r):
 
 # objective function
 def f(x, y, r, rho):
-    return r + rho * sigma1(x, y)
+    return rho * sigma1(x, y)
 
 
 # gradient vector
 def nabla_f(x, y, r, rho):
     dxarr = []
     dyarr = []
-    dr = 1
+    dr = 0
     for i, ri in enumerate(radiuses):
         dx = 0
         dy = 0
@@ -115,8 +118,8 @@ def nabla_f(x, y, r, rho):
 # Armijo method
 def armijo(x, y, r, d, rho, prev_alpha):
     alpha = prev_alpha
-    beta = 0.90
-    tau = 0.00001
+    beta = 0.9
+    tau = 0.001
     dx = d[0]
     dy = d[1]
     dr = d[2]
@@ -129,4 +132,5 @@ def armijo(x, y, r, d, rho, prev_alpha):
             break
     return alpha
 
+main()
 main()
