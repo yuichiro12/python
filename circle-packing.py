@@ -27,7 +27,7 @@ def main():
     y = np.array([(random.random() - 0.5) * r for i in radiuses])
 
     # initialize the penalty
-    rho = 0.5
+    rho = 2.0
 
     # previous alpha (initial value)
     prev_alpha = 1.0
@@ -41,7 +41,6 @@ def main():
         d[0] *= -1
         d[1] *= -1
         d[2] *= -1
-        print d[0], d[1], d[2]
         if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon:
             alpha = armijo(x, y, r, d, rho, prev_alpha)
             prev_alpha = alpha
@@ -74,7 +73,7 @@ def sigma1(x, y):
     sum = 0
     for i, ri in enumerate(radiuses):
         for j, rj in enumerate(radiuses):
-            if i != j:
+            if j > i:
                 sum += max([0, (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2])
     return sum
 
@@ -91,31 +90,25 @@ def max3(r):
 
 # objective function
 def f(x, y, r, rho):
-    return r + rho * sigma1(x, y) + rho * sigma2(x, y, r) + rho * max3(r)
+    return r + rho * sigma1(x, y)
 
 
 # gradient vector
 def nabla_f(x, y, r, rho):
     dxarr = []
     dyarr = []
-    dr = 0
+    dr = 1
     for i, ri in enumerate(radiuses):
         dx = 0
         dy = 0
         for j, rj in enumerate(radiuses):
-            if (rj == ri):
+            if (j <= i):
                 continue
             elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
                 dx -= 2 * (x[j] - x[i])
                 dy -= 2 * (y[j] - y[i])
-        if x[i]**2 + y[i]**2 - (r - ri)**2 > 0:
-            dx += 2 * x[i]
-            dy += 2 * y[i]
-            dr -= 2 * (r - ri)
-        dxarr.append(rho * dx)
-        dyarr.append(rho * dy)
-    dr -= 1 if max(radiuses) > r else 0
-    dr = rho * dr + 1
+        dxarr.append(dx)
+        dyarr.append(dy)
     return [np.array(dxarr), np.array(dyarr), dr]
 
 
