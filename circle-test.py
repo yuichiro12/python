@@ -10,7 +10,7 @@ import time
 
 # store input radius data
 radiuses = []
-input_file = open("radius.csv", "r")
+input_file = open("radius3.csv", "r")
 for row in input_file:
     rad = float(row[:-1])
     radiuses.append(rad)
@@ -27,7 +27,7 @@ def main():
     y = np.array([(random.random() - 0.5) * r for i in radiuses])
 
     # initialize the penalty
-    rho = 0.5
+    rho = 1.0
 
     # previous alpha (initial value)
     prev_alpha = 1.0
@@ -36,18 +36,19 @@ def main():
     # main roop
     start = time.time()
     drawfigure(x, y, radiuses, r)
+    d = nabla_f(x, y, r, rho)
     while i < 100:
         d = nabla_f(x, y, r, rho)
-        d[0] *= -1
-        d[1] *= -1
+        d[0] = -1 * d[0]
+        d[1] = -1 * d[1]
         d[2] *= -1
-        print d[0], d[1], d[2]
         if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon:
             alpha = armijo(x, y, r, d, rho, prev_alpha)
             prev_alpha = alpha
             x = x + alpha * d[0]
             y = y + alpha * d[1]
             r = r + alpha * d[2]
+            print r, f(x, y, r, rho)
             i += 1
         else:
             break
@@ -69,55 +70,48 @@ def drawfigure(x, y, radiuses, r):
     plt.show()
 
 
-# the second section for objective function
-def sigma1(x, y):
-    sum = 0
-    for i, ri in enumerate(radiuses):
-        for j, rj in enumerate(radiuses):
-            if i != j:
-                sum += max([0, (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2])
-    return sum
-
-# the third section for objective function
-def sigma2(x, y, r):
-    sum = 0
-    for i, ri in enumerate(radiuses):
-        sum += max([0, x[i]**2 + y[i]**2 - (r - ri)**2])
-    return sum
-
-# the fourth section for objective function
-def max3(r):
-    return max(radiuses) - r if max(radiuses) > r else 0
-
-# objective function
 def f(x, y, r, rho):
-    return r + rho * sigma1(x, y) + rho * sigma2(x, y, r) + rho * max3(r)
-
-
-# gradient vector
-def nabla_f(x, y, r, rho):
-    dxarr = []
-    dyarr = []
-    dr = 0
+    sum1 = 0
+    sum2 = 0
+    max3 = 0
     for i, ri in enumerate(radiuses):
-        dx = 0
-        dy = 0
         for j, rj in enumerate(radiuses):
-            if (rj == ri):
+            if i == j:
                 continue
             elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
-                dx -= 2 * (x[j] - x[i])
-                dy -= 2 * (y[j] - y[i])
+                sum1 += (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2
+    for i, ri in enumerate(radiuses):
         if x[i]**2 + y[i]**2 - (r - ri)**2 > 0:
-            dx += 2 * x[i]
-            dy += 2 * y[i]
-            dr -= 2 * (r - ri)
-        dxarr.append(rho * dx)
-        dyarr.append(rho * dy)
-    dr -= 1 if max(radiuses) > r else 0
-    dr = rho * dr + 1
-    return [np.array(dxarr), np.array(dyarr), dr]
+            sum2 += x[i]**2 + y[i]**2 - (r - ri)**2
+    if max(radiuses) > r:
+        max3 = max(radiuses) - r
+    return r + rho * sum1 + rho * sum2 + max3
 
+
+def nabla_f(x, y, r, rho):
+    dx = []
+    dy = []
+    dr = 0
+    tmpdx = 0
+    tmpdy = 0
+    for i, ri in enumerate(radiuses):
+        for j, rj in enumerate(radiuses):
+            if i == j:
+                continue
+            elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
+                tmpdx += -2 * (x[j] - x[i])
+                tmpdy += -2 * (y[j] - y[i])
+        if x[i]**2 + y[i]**2 - (r - ri)**2 > 0:
+            tmpdx += 2 * x[i]
+            tmpdy += 2 * y[i]
+            dr += -2 * r
+    dr *= rho
+    if max(radiuses) > r:
+        dr += max(radiuses) - r
+    dx.append(tmpdx)
+    dy.append(tmpdy)
+    dr += 1
+    return [rho * np.array(dx), rho * np.array(dy), dr]
 
 # Armijo method
 def armijo(x, y, r, d, rho, prev_alpha):
