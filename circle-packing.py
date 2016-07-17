@@ -27,7 +27,7 @@ def main():
     y = np.array([(random.random() - 0.5) * r for i in radiuses])
 
     # initialize the penalty
-    rho = 0.5
+    rho = 2.0
 
     # previous alpha (initial value)
     prev_alpha = 1.0
@@ -41,7 +41,6 @@ def main():
         d[0] *= -1
         d[1] *= -1
         d[2] *= -1
-        print d[0], d[1], d[2]
         if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon:
             alpha = armijo(x, y, r, d, rho, prev_alpha)
             prev_alpha = alpha
@@ -49,6 +48,7 @@ def main():
             y = y + alpha * d[1]
             r = r + alpha * d[2]
             i += 1
+            print r, f(x, y, r, rho)
         else:
             break
     drawfigure(x, y, radiuses, r)
@@ -74,7 +74,7 @@ def sigma1(x, y):
     sum = 0
     for i, ri in enumerate(radiuses):
         for j, rj in enumerate(radiuses):
-            if i != j:
+            if j > i:
                 sum += max([0, (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2])
     return sum
 
@@ -103,7 +103,7 @@ def nabla_f(x, y, r, rho):
         dx = 0
         dy = 0
         for j, rj in enumerate(radiuses):
-            if (rj == ri):
+            if (j <= i):
                 continue
             elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
                 dx -= 2 * (x[j] - x[i])
