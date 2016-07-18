@@ -28,7 +28,7 @@ def main():
     i = 0
 
     # initialize the penalty
-    rho = 1.5
+    rho = 1.3
 
     # previous alpha (initial value)
     prev_alpha = 1.0
@@ -37,7 +37,7 @@ def main():
     # main roop
     start = time.time()
     drawfigure(x, y, radiuses, r)
-    while i < 100:
+    while i < 1000:
         d = nabla_f(x, y, r, rho)
         d[0] *= -1
         d[1] *= -1
@@ -52,6 +52,7 @@ def main():
         else:
             break
         print r, f(x, y, r, rho)
+    print str(time.time() - start) + "[sec]"
     drawfigure(x, y, radiuses, r)
 
 
@@ -65,8 +66,8 @@ def drawfigure(x, y, radiuses, r):
         circle = plt.Circle((x[i], y[i]), ri, color="g", alpha=0.3)
         ax.add_patch(circle)
         i += 1
-    plt.xlim([-7.5, 7.5])
-    plt.ylim([-7.5, 7.5])
+    plt.xlim([-10.5, 10.5])
+    plt.ylim([-10.5, 10.5])
     plt.show()
 
 
@@ -85,7 +86,8 @@ def sigma1(x, y):
 def sigma2(x, y, r):
     sum = 0
     for i, ri in enumerate(radiuses):
-        sum += max([0, x[i]**2 + y[i]**2 - (r - ri)**2])
+        if x[i]**2 + y[i]**2 - (r - ri)**2 > 0:
+            sum += x[i]**2 + y[i]**2 - (r - ri)**2
     return sum
 
 # the fourth section for objective function
@@ -106,7 +108,7 @@ def nabla_f(x, y, r, rho):
         dx = 0
         dy = 0
         for j, rj in enumerate(radiuses):
-            if j <= i:
+            if j == i:
                 continue
             elif (ri + rj)**2 - (x[i] - x[j])**2 - (y[i] - y[j])**2 > 0:
                 dx += -2 * x[i] + 2 * x[j]
