@@ -93,7 +93,7 @@ def max3(r):
 
 # objective function
 def f(x, y, r, rho):
-    return rho * sigma1(x, y)
+    return r + rho * sigma1(x, y) + rho * max3(r)
 
 
 # gradient vector
@@ -112,6 +112,8 @@ def nabla_f(x, y, r, rho):
                 dy += -2 * y[j] + 2 * y[i]
         dxarr.append(dx)
         dyarr.append(dy)
+    dr -= rho if max(radiuses) > r else 0
+    dr += 1
     return [rho * np.array(dxarr), rho * np.array(dyarr), dr]
 
 
