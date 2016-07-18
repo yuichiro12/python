@@ -25,9 +25,10 @@ def main():
     r = math.sqrt(area * 3 / math.pi)
     x = np.array([(random.random() - 0.5) * r for i in radiuses])
     y = np.array([(random.random() - 0.5) * r for i in radiuses])
+    i = 0
 
     # initialize the penalty
-    rho = 2.0
+    rho = 1.5
 
     # previous alpha (initial value)
     prev_alpha = 1.0
@@ -48,9 +49,10 @@ def main():
             y = y + alpha * d[1]
             r = r + alpha * d[2]
             i += 1
+            print i, i
         else:
             break
-    print r, f(x, y, r, rho)
+        print r, f(x, y, r, rho)
     drawfigure(x, y, radiuses, r)
 
 
@@ -64,8 +66,8 @@ def drawfigure(x, y, radiuses, r):
         circle = plt.Circle((x[i], y[i]), ri, color="g", alpha=0.3)
         ax.add_patch(circle)
         i += 1
-    plt.xlim([-10.5, 10.5])
-    plt.ylim([-10.5, 10.5])
+    plt.xlim([-7.5, 7.5])
+    plt.ylim([-7.5, 7.5])
     plt.show()
 
 
@@ -76,8 +78,8 @@ def sigma1(x, y):
         for j, rj in enumerate(radiuses):
             if j <= i:
                 continue
-            elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
-                sum += (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2
+            elif (ri + rj)**2 - (x[i] - x[j])**2 - (y[i] - y[j])**2 > 0:
+                sum += (ri + rj)**2 - (x[i] - x[j])**2 - (y[i] - y[j])**2
     return sum
 
 # the third section for objective function
@@ -93,7 +95,7 @@ def max3(r):
 
 # objective function
 def f(x, y, r, rho):
-    return r + rho * sigma1(x, y) + rho * max3(r)
+    return r + rho * sigma1(x, y) + rho * sigma2(x, y, r) + rho * max3(r)
 
 
 # gradient vector
@@ -107,12 +109,17 @@ def nabla_f(x, y, r, rho):
         for j, rj in enumerate(radiuses):
             if j <= i:
                 continue
-            elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
-                dx += -2 * x[j] + 2 * x[i]
-                dy += -2 * y[j] + 2 * y[i]
+            elif (ri + rj)**2 - (x[i] - x[j])**2 - (y[i] - y[j])**2 > 0:
+                dx += -2 * x[i] + 2 * x[j]
+                dy += -2 * y[i] + 2 * y[j]
+        if x[i]**2 + y[i]**2 - (r - ri)**2 > 0:
+            dx += 2 * x[i]
+            dy += 2 * y[i]
+            dr += -2 * r + 2 * ri
         dxarr.append(dx)
         dyarr.append(dy)
-    dr -= rho if max(radiuses) > r else 0
+    dr -= 1 if max(radiuses) > r else 0
+    dr *= rho
     dr += 1
     return [rho * np.array(dxarr), rho * np.array(dyarr), dr]
 
@@ -121,7 +128,7 @@ def nabla_f(x, y, r, rho):
 def armijo(x, y, r, d, rho, prev_alpha):
     alpha = prev_alpha
     beta = 0.9
-    tau = 0.001
+    tau = 0.00001
     dx = d[0]
     dy = d[1]
     dr = d[2]
