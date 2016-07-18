@@ -53,8 +53,8 @@ def main():
             i += 1
         else:
             break
-        print r, f(x, y, r, rho)
     print str(time.time() - start) + "[sec]"
+    print r, f(x, y, r, rho)
     drawfigure(x, y, radiuses, r)
 
 
@@ -131,19 +131,14 @@ def nabla_f(x, y, r, rho):
 def armijo(x, y, r, d, rho, prev_alpha):
     alpha = prev_alpha
     beta = 0.9
-    tau1 = 1e-5
-    tau2 = 1e-4
+    tau = 1e-5
     dx = d[0]
     dy = d[1]
     dr = d[2]
     i = 0
     while i < 1000:
-        df = nabla_f(x + alpha * dx, y + alpha * dy, r + alpha * dr, rho)
         if  f(x + alpha * dx, y + alpha * dy, r + alpha * dr, rho) > \
-            f(x, y, r, rho) + tau1 * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)) \
-            or \
-            np.dot(df[0], -dx) + np.dot(df[1], -dy) + np.dot(dr, -dr) < \
-            tau2 * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)):
+            f(x, y, r, rho) + tau * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)):
             alpha *= beta
             i += 1
         else:
