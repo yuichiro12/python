@@ -18,7 +18,7 @@ for row in input_file:
 
 def main():
     #initialize the variables
-    epsilon = 0.00001
+    epsilon = 1e-5
     area = 0
     for ri in radiuses:
         area += ri * ri * math.pi
@@ -45,6 +45,8 @@ def main():
         if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon**2:
             alpha = armijo(x, y, r, d, rho, prev_alpha)
             prev_alpha = alpha
+            if f(x, y, r ,rho) - f(x + alpha * d[0], y + alpha * d[1], r + alpha * d[2], rho)  < 1e-20:
+                break
             x = x + alpha * d[0]
             y = y + alpha * d[1]
             r = r + alpha * d[2]
@@ -129,13 +131,19 @@ def nabla_f(x, y, r, rho):
 def armijo(x, y, r, d, rho, prev_alpha):
     alpha = prev_alpha
     beta = 0.9
-    tau = 0.00001
+    tau1 = 1e-5
+    tau2 = 1e-4
     dx = d[0]
     dy = d[1]
     dr = d[2]
     i = 0
     while i < 1000:
-        if  f(x + alpha * dx, y + alpha * dy, r + alpha * dr, rho) > f(x, y, r, rho) + tau * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)):
+        df = nabla_f(x + alpha * dx, y + alpha * dy, r + alpha * dr, rho)
+        if  f(x + alpha * dx, y + alpha * dy, r + alpha * dr, rho) > \
+            f(x, y, r, rho) + tau1 * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)) \
+            or \
+            np.dot(df[0], -dx) + np.dot(df[1], -dy) + np.dot(dr, -dr) < \
+            tau2 * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)):
             alpha *= beta
             i += 1
         else:
