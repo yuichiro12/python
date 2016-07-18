@@ -25,9 +25,10 @@ def main():
     r = math.sqrt(area * 3 / math.pi)
     x = np.array([(random.random() - 0.5) * r for i in radiuses])
     y = np.array([(random.random() - 0.5) * r for i in radiuses])
+    i = 0
 
     # initialize the penalty
-    rho = 2.0
+    rho = 1.5
 
     # previous alpha (initial value)
     prev_alpha = 1.0
@@ -41,16 +42,16 @@ def main():
         d[0] *= -1
         d[1] *= -1
         d[2] *= -1
-        if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon:
+        if np.dot(d[0], d[0]) + np.dot(d[1], d[1]) + d[2]**2 >= epsilon**2:
             alpha = armijo(x, y, r, d, rho, prev_alpha)
             prev_alpha = alpha
             x = x + alpha * d[0]
             y = y + alpha * d[1]
             r = r + alpha * d[2]
             i += 1
-            print r, f(x, y, r, rho)
         else:
             break
+        print r, f(x, y, r, rho)
     drawfigure(x, y, radiuses, r)
 
 
@@ -64,8 +65,8 @@ def drawfigure(x, y, radiuses, r):
         circle = plt.Circle((x[i], y[i]), ri, color="g", alpha=0.3)
         ax.add_patch(circle)
         i += 1
-    plt.xlim([-10.5, 10.5])
-    plt.ylim([-10.5, 10.5])
+    plt.xlim([-7.5, 7.5])
+    plt.ylim([-7.5, 7.5])
     plt.show()
 
 
@@ -74,8 +75,10 @@ def sigma1(x, y):
     sum = 0
     for i, ri in enumerate(radiuses):
         for j, rj in enumerate(radiuses):
-            if j > i:
-                sum += max([0, (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2])
+            if j <= i:
+                continue
+            elif (ri + rj)**2 - (x[i] - x[j])**2 - (y[i] - y[j])**2 > 0:
+                sum += (ri + rj)**2 - (x[i] - x[j])**2 - (y[i] - y[j])**2
     return sum
 
 # the third section for objective function
@@ -103,26 +106,27 @@ def nabla_f(x, y, r, rho):
         dx = 0
         dy = 0
         for j, rj in enumerate(radiuses):
-            if (j <= i):
+            if j <= i:
                 continue
-            elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
-                dx -= 2 * (x[j] - x[i])
-                dy -= 2 * (y[j] - y[i])
+            elif (ri + rj)**2 - (x[i] - x[j])**2 - (y[i] - y[j])**2 > 0:
+                dx += -2 * x[i] + 2 * x[j]
+                dy += -2 * y[i] + 2 * y[j]
         if x[i]**2 + y[i]**2 - (r - ri)**2 > 0:
             dx += 2 * x[i]
             dy += 2 * y[i]
-            dr -= 2 * (r - ri)
-        dxarr.append(rho * dx)
-        dyarr.append(rho * dy)
+            dr += -2 * r + 2 * ri
+        dxarr.append(dx)
+        dyarr.append(dy)
     dr -= 1 if max(radiuses) > r else 0
-    dr = rho * dr + 1
-    return [np.array(dxarr), np.array(dyarr), dr]
+    dr *= rho
+    dr += 1
+    return [rho * np.array(dxarr), rho * np.array(dyarr), dr]
 
 
 # Armijo method
 def armijo(x, y, r, d, rho, prev_alpha):
     alpha = prev_alpha
-    beta = 0.90
+    beta = 0.9
     tau = 0.00001
     dx = d[0]
     dy = d[1]
