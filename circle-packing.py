@@ -10,7 +10,7 @@ import time
 
 # store input radius data
 radiuses = []
-input_file = open("radius3.csv", "r")
+input_file = open("radius.csv", "r")
 for row in input_file:
     rad = float(row[:-1])
     radiuses.append(rad)
@@ -36,7 +36,7 @@ def main():
     # main roop
     start = time.time()
     drawfigure(x, y, radiuses, r)
-    while i < 1000:
+    while i < 100:
         d = nabla_f(x, y, r, rho)
         d[0] *= -1
         d[1] *= -1
@@ -48,9 +48,9 @@ def main():
             y = y + alpha * d[1]
             r = r + alpha * d[2]
             i += 1
-            print r, f(x, y, r, rho), sigma1(x, y)
         else:
             break
+    print r, f(x, y, r, rho)
     drawfigure(x, y, radiuses, r)
 
 
@@ -105,14 +105,14 @@ def nabla_f(x, y, r, rho):
         dx = 0
         dy = 0
         for j, rj in enumerate(radiuses):
-            if (j <= i):
+            if j <= i:
                 continue
             elif (rj + ri)**2 - (x[j] - x[i])**2 - (y[j] - y[i])**2 > 0:
-                dx -= 2 * (x[j] - x[i])
-                dy -= 2 * (y[j] - y[i])
+                dx += -2 * x[j] + 2 * x[i]
+                dy += -2 * y[j] + 2 * y[i]
         dxarr.append(dx)
         dyarr.append(dy)
-    return [np.array(dxarr), np.array(dyarr), dr]
+    return [rho * np.array(dxarr), rho * np.array(dyarr), dr]
 
 
 # Armijo method
@@ -132,5 +132,4 @@ def armijo(x, y, r, d, rho, prev_alpha):
             break
     return alpha
 
-main()
 main()
