@@ -26,7 +26,7 @@ def main():
     # x = np.array([(random.random() - 0.5) * r for i in radiuses])
     # y = np.array([(random.random() - 0.5) * r for i in radiuses])
 
-    # with open("points2.csv", "w") as fileobj:
+    # with open("newpoints.csv", "w") as fileobj:
     #     for i, ri in enumerate(radiuses):
     #         fileobj.write(str(x[i]) + ', ' + str(y[i]) + '\n')
     x = []
@@ -47,8 +47,8 @@ def main():
 
     print r, f(x, y, r, rho)
     # main roop
-    start = time.time()
     drawfigure(x, y, radiuses, r)
+    start = time.time()
     while i < 1000:
         d = nabla_f(x, y, r, rho)
         d[0] *= -1
@@ -149,8 +149,7 @@ def armijo(x, y, r, d, rho, prev_alpha):
     dr = d[2]
     i = 0
     while i < 1000:
-        if  f(x + alpha * dx, y + alpha * dy, r + alpha * dr, rho) > \
-            f(x, y, r, rho) + tau * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)):
+        if  f(x + alpha * dx, y + alpha * dy, r + alpha * dr, rho) > f(x, y, r, rho) + tau * alpha * (np.dot(dx, -dx) + np.dot(dy, -dy) + np.dot(dr, -dr)):
             alpha *= beta
             i += 1
         else:
