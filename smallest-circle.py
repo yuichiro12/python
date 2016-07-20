@@ -7,10 +7,10 @@ import time
 
 # store input position data
 position = []
-input_file = open("position.csv", "r")
-for row in input_file:
-    pos = [float(s) for s in row[:-1].split(',')]
-    position.append(np.array(pos))
+with open("position.csv", "r") as input_file:
+    for row in input_file:
+        pos = [float(s) for s in row[:-1].split(',')]
+        position.append(np.array(pos))
 
 
 def main():
@@ -26,6 +26,7 @@ def main():
     # previous alpha (initial value)
     prev_alpha = 1.0
 
+    drawfigure(x[0], x[1], r)
     start = time.time()
     #main roop
     while i < 100 and np.linalg.norm(nabla_f(x, r, rho)) >= epsilon:

@@ -10,10 +10,10 @@ import time
 
 # store input radius data
 radiuses = []
-input_file = open("radius.csv", "r")
-for row in input_file:
-    rad = float(row[:-1])
-    radiuses.append(rad)
+with open("radius.csv", "r") as input_file:
+    for row in input_file:
+        rad = float(row[:-1])
+        radiuses.append(rad)
 
 
 def main():
@@ -23,8 +23,20 @@ def main():
     for ri in radiuses:
         area += ri * ri * math.pi
     r = math.sqrt(area * 3 / math.pi)
-    x = np.array([(random.random() - 0.5) * r for i in radiuses])
-    y = np.array([(random.random() - 0.5) * r for i in radiuses])
+    # x = np.array([(random.random() - 0.5) * r for i in radiuses])
+    # y = np.array([(random.random() - 0.5) * r for i in radiuses])
+
+    # with open("points2.csv", "w") as fileobj:
+    #     for i, ri in enumerate(radiuses):
+    #         fileobj.write(str(x[i]) + ', ' + str(y[i]) + '\n')
+    x = []
+    y = []
+    with open("points.csv", "r") as input_file2:
+        for row in input_file2:
+            pos = [float(s) for s in row[:-1].split(',')]
+            x.append(pos[0])
+            y.append(pos[1])
+    
     i = 0
 
     # initialize the penalty
